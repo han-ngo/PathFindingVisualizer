@@ -1,0 +1,128 @@
+/* .node {
+  display: inline-flex;
+  width: 25px;
+  height: 25px;
+  outline: 1px solid #52525b;
+} */
+
+.node {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative; /* if you need to position the svg-display absolutely */
+  width: 25px;
+  height: 25px;
+  outline: 1px solid #52525b;
+}
+
+.svg-display {
+  display: none; /* Hide the SVG by default */
+  position: absolute; /* to stack the SVGs on top of each other if needed */
+  transform: translate(-50%, -50%);
+  top: 50%;
+  left: 50%;
+  animation-name: moveToTarget;
+  transition: transform 0.8s ease-out;
+}
+
+.svg-display.show-svg {
+  display: inline-block; /* Show the SVG when this class is applied */
+}
+
+.fas,
+.fa-solid:before {
+  font-size: 24px;
+  contain: content;
+}
+
+.start-node {
+  color: #9cbecd;
+  font-size: 27px;
+}
+
+.target-node {
+  color: #eba1a1;
+}
+
+.visited-node {
+  animation-name: visitedAnimation;
+  animation-duration: 0.45s;
+  animation-timing-function: ease-out; /* Specifies an animation with a slow end */
+  background-color: #ffe5ec;
+}
+
+.wall-node {
+  background-color: #b493cc;
+}
+
+.water-node {
+  background-color: #def3fd;
+}
+
+/* Style the shortest path node with a yellow dot */
+/* .node.shortestPath-node .dot {
+  width: 10px;
+  height: 10px;
+  margin-left: -10px;
+  background-color: yellow;
+  border-radius: 50%;
+  margin: auto;
+  animation: shortestPathAnimation 0.5s ease-in-out forwards;
+} */
+.shortestPath-node .dot {
+  animation-name: shortestPathAnimation;
+  animation-duration: 0.8s;
+  animation-timing-function: ease-out; /* Specifies an animation with a slow end */
+  background-color: #fffe6a;
+  border-radius: 50%;
+  margin: auto;
+  margin-left: -7px;
+  width: 8px;
+  height: 8px;
+}
+
+/* ANIMATION */
+
+/* the animation will gradually change from the current style to the new style at certain times. */
+@keyframes visitedAnimation {
+  0% {
+    transform: scale(0.4);
+    background-color: #ffe5ec;
+    border-radius: 100%;
+  }
+  25% {
+    background-color: #fff7c2;
+  }
+  50% {
+    transform: scale(1.2);
+    background-color: #ffc3b3;
+  }
+  100% {
+    transform: scale(1);
+    background-color: #ff8fab;
+  }
+}
+
+@keyframes shortestPathAnimation {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes moveToTarget {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(var(--translate-x), var(--translate-y));
+  }
+}
