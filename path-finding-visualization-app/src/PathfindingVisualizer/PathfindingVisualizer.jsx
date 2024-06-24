@@ -84,7 +84,7 @@ export default class PathfindingVisualizer extends Component {
 
   /* invoked immediately after a component is mounted (inserted into the tree) */
   componentDidMount() {
-    const grid = initGrid();
+    const grid = this.initGrid();
     this.setState({ grid });
 
     document
@@ -97,7 +97,7 @@ export default class PathfindingVisualizer extends Component {
 
   clearBoard() {
     $(".path-not-found").empty();
-    createNewCleanGrid(this.state.grid);
+    this.createNewCleanGrid(this.state.grid);
     this.setState({ grid: this.state.grid });
   }
 
@@ -110,7 +110,7 @@ export default class PathfindingVisualizer extends Component {
   /*** HANDLE MOUSE EVENT ***/
   /**************************/
   handleMouseDown(row, col) {
-    const newGrid = createNewGridOnWallToggled(this.state.grid, row, col);
+    const newGrid = this.createNewGridOnWallToggled(this.state.grid, row, col);
     this.setState({
       grid: newGrid,
       mouseIsPressed: true,
@@ -128,7 +128,11 @@ export default class PathfindingVisualizer extends Component {
       this.state.pressedNode !== startNode &&
       this.state.pressedNode !== targetNode
     ) {
-      const newGrid = createNewGridOnWallToggled(this.state.grid, row, col);
+      const newGrid = this.createNewGridOnWallToggled(
+        this.state.grid,
+        row,
+        col
+      );
       this.setState({ grid: newGrid });
     }
   }
@@ -306,90 +310,90 @@ export default class PathfindingVisualizer extends Component {
         return "Pick an algorithm to visualize!";
     }
   }
-}
 
-const createNode = (row, col) => {
-  return {
-    row,
-    col,
-    isStart: row === START_NODE[0] && col === START_NODE[1],
-    isTarget: row === TARGET_NODE[0] && col === TARGET_NODE[1],
-    isVisited: false,
-    isWall: false,
-    status: getInitialStatus(row, col),
-  };
-};
-
-const getInitialStatus = (row, col) => {
-  if (row === START_NODE[0] && col === START_NODE[1]) {
-    return "start";
-  }
-  if (row === TARGET_NODE[0] && col === TARGET_NODE[1]) {
-    return "target";
-  }
-  return "unvisited";
-};
-
-const initGrid = () => {
-  // Calculate grid size
-  let navbarHeight = $("nav").height(),
-    footerHeight = $("footer").height(),
-    textHeight = $(".main-text").height(),
-    legendHeight = $(".legend").height();
-  GRID_HEIGHT = Math.floor(
-    ($(document).height() -
-      navbarHeight -
-      textHeight -
-      legendHeight -
-      footerHeight) /
-      28
-  );
-  GRID_WIDTH = Math.floor(($(document).width() - 45 * 2) / 27);
-  // Calculate start and target node position
-  START_NODE = [Math.floor(GRID_HEIGHT / 2), Math.floor(GRID_WIDTH / 7)];
-  TARGET_NODE = [Math.floor(GRID_HEIGHT / 2), Math.floor(GRID_WIDTH / 7) * 6];
-
-  const grid = [];
-  for (let row = 0; row < GRID_HEIGHT; row++) {
-    const curRow = [];
-    for (let col = 0; col < GRID_WIDTH; col++) {
-      const curNode = createNode(row, col);
-      curRow.push(curNode);
-    }
-    grid.push(curRow);
-  }
-  return grid;
-};
-
-const createNewGridOnWallToggled = (grid, row, col) => {
-  // get a new copy of grid
-  const newGrid = grid.slice();
-  // toggle isWall for new node
-  const node = grid[row][col];
-  if (!node.isStart && !node.isTarget) {
-    // cannot set wall on start and target node
-    const newNode = {
-      ...node,
-      isWall: !node.isWall,
-      status: node.status === "wall" ? "unvisited" : "wall",
+  createNode(row, col) {
+    return {
+      row,
+      col,
+      isStart: row === START_NODE[0] && col === START_NODE[1],
+      isTarget: row === TARGET_NODE[0] && col === TARGET_NODE[1],
+      isVisited: false,
+      isWall: false,
+      status: this.getInitialStatus(row, col),
     };
-    // update new node on new grid
-    newGrid[row][col] = newNode;
   }
-  return newGrid;
-};
 
-const createNewCleanGrid = (grid) => {
-  for (let row = 0; row < GRID_HEIGHT; row++) {
-    for (let col = 0; col < GRID_WIDTH; col++) {
-      const node = grid[row][col];
-      // reset all settings
-      node.isVisited = false;
-      node.isWall = false;
-      if (!node.isStart && !node.isTarget) {
-        // exclude start and target node
-        $(`#node-${node.row}-${node.col}`).attr("class", "node");
+  getInitialStatus(row, col) {
+    if (row === START_NODE[0] && col === START_NODE[1]) {
+      return "start";
+    }
+    if (row === TARGET_NODE[0] && col === TARGET_NODE[1]) {
+      return "target";
+    }
+    return "unvisited";
+  }
+
+  initGrid() {
+    // Calculate grid size
+    let navbarHeight = $("nav").height(),
+      footerHeight = $("footer").height(),
+      textHeight = $(".main-text").height(),
+      legendHeight = $(".legend").height();
+    GRID_HEIGHT = Math.floor(
+      ($(document).height() -
+        navbarHeight -
+        textHeight -
+        legendHeight -
+        footerHeight) /
+        28
+    );
+    GRID_WIDTH = Math.floor(($(document).width() - 45 * 2) / 27);
+    // Calculate start and target node position
+    START_NODE = [Math.floor(GRID_HEIGHT / 2), Math.floor(GRID_WIDTH / 7)];
+    TARGET_NODE = [Math.floor(GRID_HEIGHT / 2), Math.floor(GRID_WIDTH / 7) * 6];
+
+    const grid = [];
+    for (let row = 0; row < GRID_HEIGHT; row++) {
+      const curRow = [];
+      for (let col = 0; col < GRID_WIDTH; col++) {
+        const curNode = this.createNode(row, col);
+        curRow.push(curNode);
+      }
+      grid.push(curRow);
+    }
+    return grid;
+  }
+
+  createNewGridOnWallToggled(grid, row, col) {
+    // get a new copy of grid
+    const newGrid = grid.slice();
+    // toggle isWall for new node
+    const node = grid[row][col];
+    if (!node.isStart && !node.isTarget) {
+      // cannot set wall on start and target node
+      const newNode = {
+        ...node,
+        isWall: !node.isWall,
+        status: node.status === "wall" ? "unvisited" : "wall",
+      };
+      // update new node on new grid
+      newGrid[row][col] = newNode;
+    }
+    return newGrid;
+  }
+
+  createNewCleanGrid(grid) {
+    for (let row = 0; row < GRID_HEIGHT; row++) {
+      for (let col = 0; col < GRID_WIDTH; col++) {
+        const node = grid[row][col];
+        // reset all settings
+        node.isVisited = false;
+        node.isWall = false;
+        if (!node.isStart && !node.isTarget) {
+          // exclude start and target node
+          $(`#node-${node.row}-${node.col}`).attr("class", "node");
+        }
       }
     }
   }
-};
+}
