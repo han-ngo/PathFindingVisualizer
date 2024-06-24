@@ -1,46 +1,49 @@
 import React, { Component } from "react";
 import { Ghost, PacMan } from "@/components/icons";
+import classNames from "classnames";
 import "./Node.css";
 
-export default class Node extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {};
-  }
+const Node = ({
+  row,
+  col,
+  status,
+  onMouseDown,
+  onMouseEnter,
+  onMouseUp,
+  // onDrag,
+  // onDragEnd,
+}) => {
+  const nodeClass = classNames({
+    "start-node": status === "start",
+    "target-node": status === "target",
+    object: status === "object",
+    unvisited: status === "unvisited",
+    wall: status === "wall",
+  });
 
-  render() {
-    const {
-      row,
-      col,
-      isStart,
-      isTarget,
-      isWall,
-      onMouseDown,
-      onMouseEnter,
-      onMouseUp,
-    } = this.props;
-    const nodeClassName = isStart
-      ? "start-node"
-      : isTarget
-      ? "target-node"
-      : isWall
-      ? "wall-node "
-      : "";
-    return (
-      <div
-        id={`node-${row}-${col}`}
-        className={`node ${nodeClassName}`}
-        onMouseDown={() => onMouseDown(row, col)}
-        onMouseEnter={() => onMouseEnter(row, col)}
-        onMouseUp={() => onMouseUp(row, col)}
-      >
-        <div className={`svg-display ${isStart ? "show-svg" : ""}`}>
+  return (
+    <div
+      id={`node-${row}-${col}`}
+      className={`node ${nodeClass}`}
+      onMouseDown={() => onMouseDown(row, col)}
+      onMouseEnter={() => onMouseEnter(row, col)}
+      onMouseUp={() => onMouseUp(row, col)}
+      // draggable={status === 'start' || status === 'target'}
+      // onDrag={(e) => onDrag(e, row, col)}
+      // onDragEnd={(e) => onDragEnd(e, row, col)}
+    >
+      {status === "start" && (
+        <div className="svg-display show-svg">
           <PacMan />
         </div>
-        <div className={`svg-display ${isTarget ? "show-svg" : ""}`}>
+      )}
+      {status === "target" && (
+        <div className="svg-display show-svg">
           <Ghost />
         </div>
-      </div>
-    );
-  }
-}
+      )}
+    </div>
+  );
+};
+
+export default Node;

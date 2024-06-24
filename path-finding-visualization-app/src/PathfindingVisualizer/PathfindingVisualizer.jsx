@@ -4,7 +4,6 @@ import React, { Component } from "react";
 import Node from "./Node/Node";
 import MyLegend from "./Legend/MyLegend";
 import NextUINavbar from "./Navbar/NextUINavbar";
-import NavigationMenuDemo from "./Navbar/ShadcnNavbar";
 import { bfs, getBFSVistedNodesInOrder } from "../Algorithms/bfs";
 import { dfs, getDFSVistedNodesInOrder } from "../Algorithms/dfs";
 import "./PathfindingVisualizer.css";
@@ -38,24 +37,24 @@ export default class PathfindingVisualizer extends Component {
               return (
                 <div className="row" key={rowIndex}>
                   {row.map((node, nodeIndex) => {
-                    const {
-                      row,
-                      col,
-                      isStart,
-                      isTarget,
-                      isVisited,
-                      isWall,
-                      mouseIsPressed,
-                    } = node;
+                    const { row, col, isVisited, status, mouseIsPressed } =
+                      node;
                     return (
                       <Node
                         row={row}
                         col={col}
+                        status={status}
                         key={nodeIndex} /* key is needed for iterable items */
-                        isStart={isStart}
-                        isTarget={isTarget}
                         isVisited={isVisited}
-                        isWall={isWall}
+                        // onDragStart={(event, row, col) =>
+                        //   this.handleDragStart(event, row, col)
+                        // }
+                        // onDrag={(event, row, col) =>
+                        //   this.handleDrag(event, row, col)
+                        // }
+                        // onDragEnd={(event, row, col) =>
+                        //   this.handleDragEnd(event, row, col)
+                        // }
                         mouseIsPressed={mouseIsPressed}
                         onMouseDown={(row, col) =>
                           this.handleMouseDown(row, col)
@@ -100,6 +99,9 @@ export default class PathfindingVisualizer extends Component {
     this.setState({ algorithm: event });
   }
 
+  /**************************/
+  /*** HANDLE MOUSE EVENT ***/
+  /**************************/
   handleMouseDown(row, col) {
     const newGrid = createNewGridOnWallToggled(this.state.grid, row, col);
     this.setState({
@@ -107,9 +109,6 @@ export default class PathfindingVisualizer extends Component {
       mouseIsPressed: true,
       pressedNode: this.state.grid[row][col],
     });
-
-    // Add event listener to track mouse movement
-    document.addEventListener("mousemove", this.handleMouseMove);
   }
 
   /* Invoke when mouse hover on grid */
@@ -127,44 +126,8 @@ export default class PathfindingVisualizer extends Component {
     }
   }
 
-  handleMouseEnter(row, col) {
-    const { grid, mouseIsPressed, pressedNode } = this.state;
-
-    const startNode = this.state.grid[START_NODE[0]][START_NODE[1]];
-    const targetNode = this.state.grid[TARGET_NODE[0]][TARGET_NODE[1]];
-    if (
-      this.state.mouseIsPressed &&
-      this.state.pressedNode !== startNode &&
-      this.state.pressedNode !== targetNode
-    ) {
-      // Only toggle wall if mouseIsPressed
-      const newGrid = createNewGridOnWallToggled(this.state.grid, row, col);
-      this.setState({ grid: newGrid });
-    } else if (mouseIsPressed && pressedNode) {
-      // Only move node if mouse is pressed and it's the same node being dragged
-      const newGrid = grid.slice();
-      const targetNode = newGrid[row][col];
-
-      // Update state and move node
-      this.setState({
-        grid: this.moveNodeInGrid(newGrid, pressedNode, targetNode),
-      });
-    }
-  }
-
-  moveNodeInGrid(grid, pressedNode, targetNode) {
-    // Clone grid and update node positions
-    const newGrid = grid.slice();
-    const newPressedNode = { ...pressedNode };
-    newPressedNode.row = targetNode.row;
-    newPressedNode.col = targetNode.col;
-    newGrid[pressedNode.row][pressedNode.col] = { ...pressedNode };
-    newGrid[targetNode.row][targetNode.col] = newPressedNode;
-
-    return newGrid;
-  }
-
   handleMouseUp(row, col) {
+    console.log("mouse up =", row, col, this.state.grid[row][col]);
     const startNode = this.state.grid[START_NODE[0]][START_NODE[1]];
     const targetNode = this.state.grid[TARGET_NODE[0]][TARGET_NODE[1]];
     if (
@@ -180,37 +143,100 @@ export default class PathfindingVisualizer extends Component {
     this.setState({ mouseIsPressed: false, pressedNode: undefined });
   }
 
+  /**************************/
+  /*** HANDLE DRAG EVENT ***/
+  /**************************/
+  handleDragStart(event, row, col) {
+    console.log("start =", row, col);
+  }
+  handleDrag(event, row, col) {
+    console.log("drag =", row, col);
+  }
+  handleDragEnd(event, row, col) {
+    console.log("end =", this.state.grid[row][col]);
+  }
+
+  // swapNodes(oldNode, newNode, pressedNode) {
+  //   const startNode = this.state.grid[START_NODE[0]][START_NODE[1]];
+  //   const targetNode = this.state.grid[TARGET_NODE[0]][TARGET_NODE[1]];
+  //   switch (pressedNode) {
+  //     case startNode:
+  //       START_NODE[0] = newNode.row;
+  //       START_NODE[1] = newNode.col;
+  //       newNode.isStart = true;
+  //       document.getElementById(
+  //         `node-${newNode.row}-${newNode.col}`
+  //       ).className = "node start-node fas fa-location-arrow";
+  //       oldNode.isStart = false;
+  //       document.getElementById(
+  //         `node-${oldNode.row}-${oldNode.col}`
+  //       ).className = "node";
+  //       break;
+  //     case targetNode:
+  //       TARGET_NODE[0] = newNode.row;
+  //       TARGET_NODE[1] = newNode.col;
+  //       newNode.isTarget = true;
+  //       document.getElementById(
+  //         `node-${newNode.row}-${newNode.col}`
+  //       ).className = "node target-node fas fa-star";
+  //       oldNode.isTarget = false;
+  //       document.getElementById(
+  //         `node-${oldNode.row}-${oldNode.col}`
+  //       ).className = "node";
+  //       break;
+  //     default:
+  //       break;
+  //   }
+  // }
+
   swapNodes(oldNode, newNode, pressedNode) {
     const startNode = this.state.grid[START_NODE[0]][START_NODE[1]];
     const targetNode = this.state.grid[TARGET_NODE[0]][TARGET_NODE[1]];
+    const newGrid = this.state.grid.slice(); // Copy the grid
+
     switch (pressedNode) {
       case startNode:
+        // Update the START_NODE coordinates
         START_NODE[0] = newNode.row;
         START_NODE[1] = newNode.col;
-        newNode.isStart = true;
-        document.getElementById(
-          `node-${newNode.row}-${newNode.col}`
-        ).className = "node start-node fas fa-location-arrow";
-        oldNode.isStart = false;
-        document.getElementById(
-          `node-${oldNode.row}-${oldNode.col}`
-        ).className = "node";
+
+        // Update the nodes in the grid
+        newGrid[oldNode.row][oldNode.col] = {
+          ...oldNode,
+          isStart: false,
+          status: "unvisited",
+        };
+        newGrid[newNode.row][newNode.col] = {
+          ...newNode,
+          isStart: true,
+          status: "start",
+        };
         break;
+
       case targetNode:
+        // Update the TARGET_NODE coordinates
         TARGET_NODE[0] = newNode.row;
         TARGET_NODE[1] = newNode.col;
-        newNode.isTarget = true;
-        document.getElementById(
-          `node-${newNode.row}-${newNode.col}`
-        ).className = "node target-node fas fa-star";
-        oldNode.isTarget = false;
-        document.getElementById(
-          `node-${oldNode.row}-${oldNode.col}`
-        ).className = "node";
+
+        // Update the nodes in the grid
+        newGrid[oldNode.row][oldNode.col] = {
+          ...oldNode,
+          isTarget: false,
+          status: "unvisited",
+        };
+        newGrid[newNode.row][newNode.col] = {
+          ...newNode,
+          isTarget: true,
+          status: "target",
+        };
         break;
+
       default:
         break;
     }
+
+    // Update the state with the new grid
+    this.setState({ grid: newGrid });
   }
 
   visualizeAlgorithm() {
@@ -264,28 +290,6 @@ export default class PathfindingVisualizer extends Component {
     }
   }
 
-  moveStartObjToTarget() {
-    const startNode = document.querySelector(".start-node");
-    const targetNode = document.querySelector(".target-node");
-    const svgContainer = document.querySelector(".svg-display");
-
-    if (!startNode || !targetNode || !svgContainer) {
-      console.error("Start node, target node, or svg display not found!");
-      return;
-    }
-
-    const startRect = startNode.getBoundingClientRect();
-    const targetRect = targetNode.getBoundingClientRect();
-
-    const translateX = targetRect.left - startRect.left;
-    const translateY = targetRect.top - startRect.top;
-
-    svgContainer.style.setProperty("--translate-x", `${translateX}px`);
-    svgContainer.style.setProperty("--translate-y", `${translateY}px`);
-
-    svgContainer.style.transform = `translate(${translateX}px, ${translateY}px)`;
-  }
-
   animateShortestPath(path) {
     if (!path) {
       this.alertPathNotFound();
@@ -310,10 +314,6 @@ export default class PathfindingVisualizer extends Component {
         }
       }, 25 * i);
     }
-
-    setTimeout(() => {
-      this.moveStartObjToTarget();
-    }, 25 * path.length);
   }
 
   alertPathNotFound() {
@@ -338,11 +338,19 @@ const createNode = (row, col) => {
   return {
     row,
     col,
-    isStart: row === START_NODE[0] && col === START_NODE[1],
-    isTarget: row === TARGET_NODE[0] && col === TARGET_NODE[1],
     isVisited: false,
-    isWall: false,
+    status: getInitialStatus(row, col),
   };
+};
+
+const getInitialStatus = (row, col) => {
+  if (row === START_NODE[0] && col === START_NODE[1]) {
+    return "start";
+  }
+  if (row === TARGET_NODE[0] && col === TARGET_NODE[1]) {
+    return "target";
+  }
+  return "unvisited";
 };
 
 const initGrid = () => {
@@ -385,7 +393,12 @@ const createNewGridOnWallToggled = (grid, row, col) => {
     // cannot set wall on start and target node
     const newNode = {
       ...node,
-      isWall: !node.isWall,
+      status:
+        node.status === "wall" ||
+        node.status === "start" ||
+        node.status === "target"
+          ? "unvisited"
+          : "wall",
     };
     // update new node on new grid
     newGrid[row][col] = newNode;

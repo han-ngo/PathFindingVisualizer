@@ -21,8 +21,6 @@
   transform: translate(-50%, -50%);
   top: 50%;
   left: 50%;
-  animation-name: moveToTarget;
-  transition: transform 0.8s ease-out;
 }
 
 .svg-display.show-svg {
@@ -115,14 +113,5 @@
   100% {
     transform: scale(1);
     opacity: 1;
-  }
-}
-
-@keyframes moveToTarget {
-  from {
-    transform: translate(0, 0);
-  }
-  to {
-    transform: translate(var(--translate-x), var(--translate-y));
   }
 }
