@@ -37,15 +37,22 @@ export default class PathfindingVisualizer extends Component {
               return (
                 <div className="row" key={rowIndex}>
                   {row.map((node, nodeIndex) => {
-                    const { row, col, isVisited, status, mouseIsPressed } =
-                      node;
+                    const {
+                      row,
+                      col,
+                      status,
+                      isVisited,
+                      isWall,
+                      mouseIsPressed,
+                    } = node;
                     return (
                       <Node
                         row={row}
                         col={col}
-                        status={status}
                         key={nodeIndex} /* key is needed for iterable items */
+                        status={status}
                         isVisited={isVisited}
+                        isWall={isWall}
                         // onDragStart={(event, row, col) =>
                         //   this.handleDragStart(event, row, col)
                         // }
@@ -155,39 +162,6 @@ export default class PathfindingVisualizer extends Component {
   handleDragEnd(event, row, col) {
     console.log("end =", this.state.grid[row][col]);
   }
-
-  // swapNodes(oldNode, newNode, pressedNode) {
-  //   const startNode = this.state.grid[START_NODE[0]][START_NODE[1]];
-  //   const targetNode = this.state.grid[TARGET_NODE[0]][TARGET_NODE[1]];
-  //   switch (pressedNode) {
-  //     case startNode:
-  //       START_NODE[0] = newNode.row;
-  //       START_NODE[1] = newNode.col;
-  //       newNode.isStart = true;
-  //       document.getElementById(
-  //         `node-${newNode.row}-${newNode.col}`
-  //       ).className = "node start-node fas fa-location-arrow";
-  //       oldNode.isStart = false;
-  //       document.getElementById(
-  //         `node-${oldNode.row}-${oldNode.col}`
-  //       ).className = "node";
-  //       break;
-  //     case targetNode:
-  //       TARGET_NODE[0] = newNode.row;
-  //       TARGET_NODE[1] = newNode.col;
-  //       newNode.isTarget = true;
-  //       document.getElementById(
-  //         `node-${newNode.row}-${newNode.col}`
-  //       ).className = "node target-node fas fa-star";
-  //       oldNode.isTarget = false;
-  //       document.getElementById(
-  //         `node-${oldNode.row}-${oldNode.col}`
-  //       ).className = "node";
-  //       break;
-  //     default:
-  //       break;
-  //   }
-  // }
 
   swapNodes(oldNode, newNode, pressedNode) {
     const startNode = this.state.grid[START_NODE[0]][START_NODE[1]];
@@ -338,7 +312,10 @@ const createNode = (row, col) => {
   return {
     row,
     col,
+    isStart: row === START_NODE[0] && col === START_NODE[1],
+    isTarget: row === TARGET_NODE[0] && col === TARGET_NODE[1],
     isVisited: false,
+    isWall: false,
     status: getInitialStatus(row, col),
   };
 };
@@ -393,12 +370,8 @@ const createNewGridOnWallToggled = (grid, row, col) => {
     // cannot set wall on start and target node
     const newNode = {
       ...node,
-      status:
-        node.status === "wall" ||
-        node.status === "start" ||
-        node.status === "target"
-          ? "unvisited"
-          : "wall",
+      isWall: !node.isWall,
+      status: node.status === "wall" ? "unvisited" : "wall",
     };
     // update new node on new grid
     newGrid[row][col] = newNode;
