@@ -1,5 +1,7 @@
 {
   "dependencies": {
-    "classnames": "^2.5.1"
+    "classnames": "^2.5.1",
+    "p5": "^1.9.4",
+    "react-script-tag": "^1.1.2"
   }
 }

@@ -7,6 +7,9 @@ import NextUINavbar from "./Navbar/NextUINavbar";
 import { bfs, getBFSVistedNodesInOrder } from "../Algorithms/bfs";
 import { dfs, getDFSVistedNodesInOrder } from "../Algorithms/dfs";
 import "./PathfindingVisualizer.css";
+import p5 from "p5";
+import sketch from "../../sketch";
+
 let GRID_HEIGHT, GRID_WIDTH, START_NODE, TARGET_NODE;
 
 export default class PathfindingVisualizer extends Component {
@@ -22,6 +25,10 @@ export default class PathfindingVisualizer extends Component {
     // TODO: why have to bind???
     this.visualizeAlgorithm = this.visualizeAlgorithm.bind(this);
     this.clearBoard = this.clearBoard.bind(this);
+    this.clearWallsAndPath = this.clearWallsAndPath.bind(this);
+
+    // Create a ref for the p5.js container
+    this.p5ContainerRef = React.createRef();
   }
 
   render() {
@@ -32,51 +39,11 @@ export default class PathfindingVisualizer extends Component {
         <NextUINavbar onSelect={(e) => this.handleSelectAlgo(e)} />
         <MyLegend algoDesc={this.displayAlgoDesc()} />
         <div className="dark text-foreground bg-background max-w-full flex justify-center items-center">
-          <div className="grid">
-            {grid.map((row, rowIndex) => {
-              return (
-                <div className="row" key={rowIndex}>
-                  {row.map((node, nodeIndex) => {
-                    const {
-                      row,
-                      col,
-                      status,
-                      isVisited,
-                      isWall,
-                      mouseIsPressed,
-                    } = node;
-                    return (
-                      <Node
-                        row={row}
-                        col={col}
-                        key={nodeIndex} /* key is needed for iterable items */
-                        status={status}
-                        isVisited={isVisited}
-                        isWall={isWall}
-                        // onDragStart={(event, row, col) =>
-                        //   this.handleDragStart(event, row, col)
-                        // }
-                        // onDrag={(event, row, col) =>
-                        //   this.handleDrag(event, row, col)
-                        // }
-                        // onDragEnd={(event, row, col) =>
-                        //   this.handleDragEnd(event, row, col)
-                        // }
-                        mouseIsPressed={mouseIsPressed}
-                        onMouseDown={(row, col) =>
-                          this.handleMouseDown(row, col)
-                        }
-                        onMouseEnter={(row, col) =>
-                          this.handleMouseEnter(row, col)
-                        }
-                        onMouseUp={(row, col) => this.handleMouseUp(row, col)}
-                      ></Node>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </div>
+          <div
+            id="p5-container"
+            className="grid"
+            ref={this.p5ContainerRef}
+          ></div>
         </div>
       </>
     );
@@ -93,12 +60,55 @@ export default class PathfindingVisualizer extends Component {
     document
       .getElementsByClassName("clear-board")[0]
       .addEventListener("click", this.clearBoard);
+
+    document
+      .getElementsByClassName("grid")[0]
+      .addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+      });
+
+    // Initialize the p5.js sketch
+    this.sketch = new p5(sketch, this.p5ContainerRef.current);
+  }
+
+  // componentDidUpdate(prevProps, prevState) {
+  //   if (
+  //     this.sketchInstance &&
+  //     (prevState.grid !== this.state.grid ||
+  //       prevState.algorithm !== this.state.algorithm)
+  //   ) {
+  //     this.sketchInstance.remove();
+  //     this.sketchInstance = new p5(this.sketch, this.p5ContainerRef.current);
+  //   }
+  // }
+
+  componentWillUnmount() {
+    // Destroy the p5.js sketch
+    this.sketch.remove();
   }
 
   clearBoard() {
     $(".path-not-found").empty();
-    this.createNewCleanGrid(this.state.grid);
-    this.setState({ grid: this.state.grid });
+    this.clearWallsAndPath();
+    // this.setState({ grid: this.state.grid });
+  }
+
+  clearWallsAndPath() {
+    // const startNode = grid[START_NODE[0]][START_NODE[1]];
+    // const targetNode = grid[TARGET_NODE[0]][TARGET_NODE[1]];
+    let newGrid = [];
+    for (let row = 0; row < GRID_HEIGHT; row++) {
+      const curRow = [];
+      for (let col = 0; col < GRID_WIDTH; col++) {
+        const curNode = this.createNode(row, col);
+        $(`#node-${row}-${col}`).attr("class", "node");
+        curRow.push(curNode);
+      }
+      newGrid.push(curRow);
+    }
+    this.setState({
+      grid: newGrid,
+    });
   }
 
   handleSelectAlgo(event) {
@@ -218,12 +228,13 @@ export default class PathfindingVisualizer extends Component {
   }
 
   visualizeAlgorithm() {
-    const { grid } = this.state,
+    const grid = this.sketch.getGrid(),
       startNode = grid[START_NODE[0]][START_NODE[1]],
       targetNode = grid[TARGET_NODE[0]][TARGET_NODE[1]];
     let path = [],
       visitedNodesInOrder = [];
 
+    console.log(grid);
     switch (this.state.algorithm) {
       case "BFS":
         path = bfs(grid, startNode, targetNode);
@@ -240,6 +251,7 @@ export default class PathfindingVisualizer extends Component {
         break;
     }
 
+    this.sketch.drawPath(path, visitedNodesInOrder);
     this.animatePathFindingAlgo(path, visitedNodesInOrder);
   }
 
@@ -380,20 +392,5 @@ export default class PathfindingVisualizer extends Component {
       newGrid[row][col] = newNode;
     }
     return newGrid;
-  }
-
-  createNewCleanGrid(grid) {
-    for (let row = 0; row < GRID_HEIGHT; row++) {
-      for (let col = 0; col < GRID_WIDTH; col++) {
-        const node = grid[row][col];
-        // reset all settings
-        node.isVisited = false;
-        node.isWall = false;
-        if (!node.isStart && !node.isTarget) {
-          // exclude start and target node
-          $(`#node-${node.row}-${node.col}`).attr("class", "node");
-        }
-      }
-    }
   }
 }

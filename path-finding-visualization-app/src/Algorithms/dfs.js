@@ -21,11 +21,11 @@ export function dfs(grid, start, target) {
     }
 
     // explore current node if not visited yet
-    if (!curNode.isVisited) {
+    if (!curNode.isVisitedSearch) {
       // add unvisited neighbors to Queue
       const unvisitedNeighbors = getUnvisitedNeighbors(curNode, grid);
       // mark current node as visited and add path
-      curNode.isVisited = true;
+      curNode.isVisitedSearch = true;
       stack = stack.concat(unvisitedNeighbors);
     }
   }
@@ -38,7 +38,7 @@ function getUnvisitedNeighbors(node, grid) {
   if (col < grid[0].length - 1) neighbors.push(grid[row][col + 1]);
   if (row > 0) neighbors.push(grid[row - 1][col]);
   if (row < grid.length - 1) neighbors.push(grid[row + 1][col]);
-  return neighbors.filter((neighbor) => !neighbor.isVisited);
+  return neighbors.filter((neighbor) => !neighbor.isVisitedSearch);
 }
 
 export function getDFSVistedNodesInOrder() {

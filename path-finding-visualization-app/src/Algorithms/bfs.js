@@ -29,7 +29,7 @@ export function bfs(grid, start, target) {
     const curTrace = trackQueue.shift(); // pop Queue
     const curNode = getNodeById(grid, Object.keys(curTrace)[0]);
 
-    // skip wall node if encounter
+    // skip wall node if encountered
     if (curNode.isWall) {
       continue;
     }
@@ -37,29 +37,34 @@ export function bfs(grid, start, target) {
     visited.push(curNode);
 
     const curNodeId = curNode.row + " " + curNode.col;
-    const pathToCurNode = [].concat(curTrace[curNodeId]);
+    const pathToCurNode = curTrace[curNodeId].slice(); // Clone the path array
 
     // return path if curNode is target
     if (curNode === target) {
       console.log("found target at node " + curNode.row + " " + curNode.col);
+      pathToCurNode.push(curNode); // Add the target node to the path
       return pathToCurNode;
     }
 
     // explore current node if not visited yet
-    if (!curNode.isVisited) {
+    if (!curNode.isVisitedSearch) {
+      // mark current node as visited and add path
+      curNode.isVisitedSearch = true;
+      pathToCurNode.push(curNode);
+
       // add unvisited neighbors to Queue
       const unvisitedNeighbors = getUnvisitedNeighbors(curNode, grid);
-      // mark current node as visited and add path
-      curNode.isVisited = true;
-      pathToCurNode.push(curNode);
       // add unvisited neighbor & its path to Queue
-      for (let unvistedNeighbor of unvisitedNeighbors) {
-        const unvistedNeighborId =
-          unvistedNeighbor.row + " " + unvistedNeighbor.col;
-        trackQueue.push({ [unvistedNeighborId]: pathToCurNode });
+      for (let unvisitedNeighbor of unvisitedNeighbors) {
+        const unvisitedNeighborId =
+          unvisitedNeighbor.row + " " + unvisitedNeighbor.col;
+        trackQueue.push({ [unvisitedNeighborId]: pathToCurNode.slice() }); // Clone the path array for each neighbor
       }
     }
   }
+
+  // Return an empty array if no path is found
+  return [];
 }
 
 function getNodeById(grid, curNodeId) {
@@ -75,7 +80,7 @@ function getUnvisitedNeighbors(node, grid) {
   if (row < grid.length - 1) neighbors.push(grid[row + 1][col]);
   if (col > 0) neighbors.push(grid[row][col - 1]);
   if (col < grid[0].length - 1) neighbors.push(grid[row][col + 1]);
-  return neighbors.filter((neighbor) => !neighbor.isVisited);
+  return neighbors.filter((neighbor) => !neighbor.isVisitedSearch);
 }
 
 export function getBFSVistedNodesInOrder() {
