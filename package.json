@@ -1,4 +1,6 @@
 {
+  "name": "path-finding-visualization-app",
+  "homepage": "/path-finding-visualization-app/",
   "dependencies": {
     "classnames": "^2.5.1"
   }
