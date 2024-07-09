@@ -1,5 +1,6 @@
 {
   "name": "path-finding-visualization-app",
+  "homepage": "/path-finding-visualization-app/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
