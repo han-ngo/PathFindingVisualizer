@@ -10,4 +10,13 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    outDir: "dist", // Specify the output directory
+    emptyOutDir: true, // Clear the output directory before building
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, "./src/main.jsx"),
+      },
+    },
+  },
 });
