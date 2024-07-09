@@ -1,6 +1,6 @@
 {
   "name": "path-finding-visualization-app",
-  "homepage": "/PathFindingVisualizer/",
+  "homepage": "https://han-ngo.github.io/PathFindingVisualizer",
   "private": true,
   "version": "0.0.0",
   "type": "module",
