@@ -4,8 +4,17 @@ import React, { Component } from "react";
 import Node from "./Node/Node";
 import MyLegend from "./Legend/MyLegend";
 import NextUINavbar from "./Navbar/NextUINavbar";
-import { bfs, getBFSVistedNodesInOrder } from "../Algorithms/bfs";
-import { dfs, getDFSVistedNodesInOrder } from "../Algorithms/dfs";
+import { bfs, getBFSVistedNodesInOrder } from "../Algorithms/Path/bfs";
+import { dfs, getDFSVistedNodesInOrder } from "../Algorithms/Path/dfs";
+import {
+  dijkstra,
+  getDijkstraVisitedNodesInOrder,
+} from "../Algorithms/Path/dijkstra";
+import {
+  recursiveDivisionMaze,
+  getRecursiveDivisionWallsInOrder,
+} from "../Algorithms/Maze/recuresiveDivision";
+import { dfsMaze, getDFSWallsInOrder } from "../Algorithms/Maze/dfs";
 import "./PathfindingVisualizer.css";
 let GRID_HEIGHT, GRID_WIDTH, START_NODE, TARGET_NODE;
 
@@ -24,12 +33,18 @@ export default class PathfindingVisualizer extends Component {
     this.clearBoard = this.clearBoard.bind(this);
   }
 
+  /********************/
+  /****  RENDER UI ****/
+  /********************/
   render() {
     const { grid } = this.state;
 
     return (
       <>
-        <NextUINavbar onSelect={(e) => this.handleSelectAlgo(e)} />
+        <NextUINavbar
+          onSelectPathAlgo={(e) => this.handleSelectPathAlgo(e)}
+          onSelectMazeAlgo={(e) => this.handleSelectMazeAlgo(e)}
+        />
         <MyLegend algoDesc={this.displayAlgoDesc()} />
         <div className="dark text-foreground bg-background max-w-full flex justify-center items-center">
           <div className="grid">
@@ -53,15 +68,6 @@ export default class PathfindingVisualizer extends Component {
                         status={status}
                         isVisited={isVisited}
                         isWall={isWall}
-                        // onDragStart={(event, row, col) =>
-                        //   this.handleDragStart(event, row, col)
-                        // }
-                        // onDrag={(event, row, col) =>
-                        //   this.handleDrag(event, row, col)
-                        // }
-                        // onDragEnd={(event, row, col) =>
-                        //   this.handleDragEnd(event, row, col)
-                        // }
                         mouseIsPressed={mouseIsPressed}
                         onMouseDown={(row, col) =>
                           this.handleMouseDown(row, col)
@@ -93,17 +99,6 @@ export default class PathfindingVisualizer extends Component {
     document
       .getElementsByClassName("clear-board")[0]
       .addEventListener("click", this.clearBoard);
-  }
-
-  clearBoard() {
-    $(".path-not-found").empty();
-    this.createNewCleanGrid(this.state.grid);
-    this.setState({ grid: this.state.grid });
-  }
-
-  handleSelectAlgo(event) {
-    $(".handle-visualize").text("Visualize " + event + " Algorithm");
-    this.setState({ algorithm: event });
   }
 
   /**************************/
@@ -138,7 +133,6 @@ export default class PathfindingVisualizer extends Component {
   }
 
   handleMouseUp(row, col) {
-    console.log("mouse up =", row, col, this.state.grid[row][col]);
     const startNode = this.state.grid[START_NODE[0]][START_NODE[1]];
     const targetNode = this.state.grid[TARGET_NODE[0]][TARGET_NODE[1]];
     if (
@@ -154,17 +148,21 @@ export default class PathfindingVisualizer extends Component {
     this.setState({ mouseIsPressed: false, pressedNode: undefined });
   }
 
-  /**************************/
-  /*** HANDLE DRAG EVENT ***/
-  /**************************/
-  handleDragStart(event, row, col) {
-    console.log("start =", row, col);
+  clearBoard() {
+    // clear other fields
+    $(".path-not-found").empty();
+
+    // reset all nodes state
+    const { grid } = this.state,
+      startNode = grid[START_NODE[0]][START_NODE[1]],
+      targetNode = grid[TARGET_NODE[0]][TARGET_NODE[1]],
+      newGrid = this.resetGrid(grid, startNode, targetNode);
+    this.setState({ grid: newGrid });
   }
-  handleDrag(event, row, col) {
-    console.log("drag =", row, col);
-  }
-  handleDragEnd(event, row, col) {
-    console.log("end =", this.state.grid[row][col]);
+
+  handleSelectPathAlgo(event) {
+    $(".handle-visualize").text("Visualize " + event + " Algorithm");
+    this.setState({ algorithm: event });
   }
 
   swapNodes(oldNode, newNode, pressedNode) {
@@ -217,6 +215,9 @@ export default class PathfindingVisualizer extends Component {
     this.setState({ grid: newGrid });
   }
 
+  /***********************/
+  /**** VISUALIZATION ****/
+  /***********************/
   visualizeAlgorithm() {
     const { grid } = this.state,
       startNode = grid[START_NODE[0]][START_NODE[1]],
@@ -233,7 +234,9 @@ export default class PathfindingVisualizer extends Component {
         path = dfs(grid, startNode, targetNode);
         visitedNodesInOrder = getDFSVistedNodesInOrder();
         break;
-      case "Dijkstra":
+      case "Dijkstra's":
+        path = dijkstra(grid, startNode, targetNode);
+        visitedNodesInOrder = getDijkstraVisitedNodesInOrder();
         break;
       default:
         this.handleAlgoNotPicked();
@@ -247,57 +250,52 @@ export default class PathfindingVisualizer extends Component {
     $(".handle-visualize").text("Pick an Algorithm!");
   }
 
-  animatePathFindingAlgo(path, visited) {
-    console.log("visualizing algorithm: " + this.state.algorithm);
-    for (let i = 0; i <= visited.length; i++) {
-      // mark shortest path found
-      if (i === visited.length) {
-        setTimeout(() => {
-          this.animateShortestPath(path);
-        }, 10 * i);
-        return;
-      }
-      // mark node as visited
+  animateNodes(nodes, classes, delay, isPath = false) {
+    nodes.forEach((node, index) => {
       setTimeout(() => {
-        const node = visited[i];
-        if (!node.isStart && !node.isTarget) {
-          // exclude animation on start & target node
-          $(`#node-${node.row}-${node.col}`).attr("class", "node visited-node");
-        }
-      }, 10 * i);
-    }
-  }
-
-  animateShortestPath(path) {
-    if (!path) {
-      this.alertPathNotFound();
-      return;
-    }
-    for (let i = 0; i < path.length; i++) {
-      // mark shortest path found
-      setTimeout(() => {
-        const node = path[i];
         // exclude animation on start & target node
         if (!node.isStart && !node.isTarget) {
           const element = document.getElementById(
             `node-${node.row}-${node.col}`
           );
           if (element) {
-            element.classList.add("shortestPath-node");
-            // Create and append the dot element
-            const dot = document.createElement("div");
-            dot.classList.add("dot");
-            element.appendChild(dot);
+            element.classList.add(classes);
+            // Create and append the dot element to path
+            if (isPath) {
+              const dot = document.createElement("div");
+              dot.classList.add("dot");
+              element.appendChild(dot);
+            }
           }
         }
-      }, 25 * i);
+      }, delay * index);
+    });
+  }
+
+  animatePathFindingAlgo(path, visited) {
+    console.log("visualizing algorithm: " + this.state.algorithm);
+    const delay = 10;
+    // mark node as visited
+    this.animateNodes(visited, "visited-node", delay);
+
+    if (!path) {
+      // if no path is found
+      this.alertPathNotFound();
+      return;
     }
+    // animate path to target node if found
+    setTimeout(() => {
+      this.animateNodes(path, "shortestPath-node", 25, true);
+    }, delay * visited.length);
   }
 
   alertPathNotFound() {
     $(".path-not-found").text("Path is NOT found! :(");
   }
 
+  /**************/
+  /**** INFO ****/
+  /**************/
   displayAlgoDesc() {
     switch (this.state.algorithm) {
       case "BFS":
@@ -307,10 +305,53 @@ export default class PathfindingVisualizer extends Component {
       case "Dijkstra":
         return "Dijkstra Algorithm is weighted and guarantees the shortest path!";
       default:
-        return "Pick an algorithm to visualize!";
+        return "Pick an algorithm to visualize! Use your mouse to add walls or drag the start and target nodes around.";
     }
   }
 
+  /**************/
+  /**** MAZE ****/
+  /**************/
+  handleSelectMazeAlgo(event) {
+    let newGrid, walls;
+    const { grid } = this.state,
+      startNode = grid[START_NODE[0]][START_NODE[1]],
+      targetNode = grid[TARGET_NODE[0]][TARGET_NODE[1]];
+    switch (event) {
+      case "Recursive_Division":
+        newGrid = recursiveDivisionMaze(grid, "random");
+        walls = getRecursiveDivisionWallsInOrder();
+        break;
+      case "Recursive_Division_Horizontal":
+        newGrid = recursiveDivisionMaze(grid, "horizontal");
+        walls = getRecursiveDivisionWallsInOrder();
+        break;
+      case "Recursive_Division_Vertical":
+        newGrid = recursiveDivisionMaze(grid, "vertical");
+        walls = getRecursiveDivisionWallsInOrder();
+        break;
+      case "DFS":
+        newGrid = dfsMaze(grid, startNode, targetNode);
+        walls = getDFSWallsInOrder();
+        break;
+      case "Random":
+        break;
+      default:
+        break;
+    }
+
+    const delay = 10;
+    // mark node as visited
+    this.animateNodes(walls, "wall-node", delay);
+    setTimeout(() => {
+      // Update the state with the new grid
+      this.setState({ grid: newGrid });
+    }, delay * walls.length);
+  }
+
+  /**************/
+  /**** GRID ****/
+  /**************/
   createNode(row, col) {
     return {
       row,
@@ -382,18 +423,49 @@ export default class PathfindingVisualizer extends Component {
     return newGrid;
   }
 
-  createNewCleanGrid(grid) {
-    for (let row = 0; row < GRID_HEIGHT; row++) {
-      for (let col = 0; col < GRID_WIDTH; col++) {
-        const node = grid[row][col];
-        // reset all settings
-        node.isVisited = false;
-        node.isWall = false;
-        if (!node.isStart && !node.isTarget) {
-          // exclude start and target node
-          $(`#node-${node.row}-${node.col}`).attr("class", "node");
+  resetGrid(grid, start, target) {
+    const newGrid = grid.map((row) =>
+      row.map((node) => {
+        if (node.isStart) {
+          return {
+            ...node,
+            isVisited: false,
+            isWall: false,
+            status: "start",
+          };
+        } else if (node.isTarget) {
+          return {
+            ...node,
+            isVisited: false,
+            isWall: false,
+            status: "target",
+          };
+        } else {
+          return {
+            ...node,
+            isVisited: false,
+            isWall: false,
+            status: "empty",
+          };
         }
-      }
-    }
+      })
+    );
+
+    // Preserve start and target nodes in their original positions
+    newGrid[start.row][start.col] = {
+      ...newGrid[start.row][start.col],
+      isVisited: false,
+      isWall: false,
+      status: "start",
+    };
+
+    newGrid[target.row][target.col] = {
+      ...newGrid[target.row][target.col],
+      isVisited: false,
+      isWall: false,
+      status: "target",
+    };
+
+    return newGrid;
   }
 }
