@@ -14,7 +14,7 @@ import {
 import { Logo } from "@/components/icons";
 
 export default function NextUINavbar(props) {
-  const { onSelect } = props;
+  const { onSelectPathAlgo, onSelectMazeAlgo } = props;
 
   // Handle selected Algorithm
   const [selectedAlgoKeys, setSelectedAlgoKeys] = React.useState(
@@ -26,8 +26,8 @@ export default function NextUINavbar(props) {
   );
   const handleAlgoSelectionChange = (keys) => {
     setSelectedAlgoKeys(keys);
-    if (onSelect) {
-      onSelect(keys.currentKey);
+    if (onSelectPathAlgo) {
+      onSelectPathAlgo(keys.currentKey);
     }
   };
 
@@ -41,6 +41,9 @@ export default function NextUINavbar(props) {
   );
   const handleMazeSelectionChange = (keys) => {
     setSelectedMazeKeys(keys);
+    if (onSelectMazeAlgo) {
+      onSelectMazeAlgo(keys.currentKey);
+    }
   };
 
   return (
@@ -73,6 +76,7 @@ export default function NextUINavbar(props) {
                 selectionMode="single"
                 selectedAlgoKeys={selectedAlgoKeys}
                 onSelectionChange={handleAlgoSelectionChange}
+                disabledKeys={["A*", "UCS"]}
               >
                 <DropdownItem key="Dijkstra's">Dijkstra's</DropdownItem>
                 <DropdownItem key="BFS">Breadth-First Search</DropdownItem>
@@ -99,6 +103,7 @@ export default function NextUINavbar(props) {
                 selectionMode="single"
                 selectedAlgoKeys={selectedMazeKeys}
                 onSelectionChange={handleMazeSelectionChange}
+                disabledKeys={["DFS", "Random"]}
               >
                 <DropdownItem key="Recursive_Division">
                   Recursive Division
@@ -108,6 +113,9 @@ export default function NextUINavbar(props) {
                 </DropdownItem>
                 <DropdownItem key="Recursive_Division_Vertical">
                   Recursive Division (Vertical Skew)
+                </DropdownItem>
+                <DropdownItem key="DFS">
+                  Recursive Backtracking (DFS)
                 </DropdownItem>
                 <DropdownItem key="Random">Random</DropdownItem>
               </DropdownMenu>
@@ -122,11 +130,11 @@ export default function NextUINavbar(props) {
               Clear Board
             </Link>
           </NavbarItem>
-          <NavbarItem>
+          {/* <NavbarItem>
             <Link className="text-small" color="foreground" href="#">
               Speed
             </Link>
-          </NavbarItem>
+          </NavbarItem> */}
         </NavbarContent>
         <NavbarContent justify="end">
           <NavbarItem>

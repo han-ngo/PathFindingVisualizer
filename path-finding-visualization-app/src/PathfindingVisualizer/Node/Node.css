@@ -21,8 +21,6 @@
   transform: translate(-50%, -50%);
   top: 50%;
   left: 50%;
-  animation-name: moveToTarget;
-  transition: transform 0.8s ease-out;
 }
 
 .svg-display.show-svg {
@@ -48,15 +46,15 @@
   animation-name: visitedAnimation;
   animation-duration: 0.45s;
   animation-timing-function: ease-out; /* Specifies an animation with a slow end */
-  background-color: #ffe5ec;
+  background-color: #a1a1aa;
 }
 
 .wall-node {
-  background-color: #b493cc;
+  background-color: #3d38d7;
 }
 
 .water-node {
-  background-color: #def3fd;
+  background-color: #93c5fd;
 }
 
 /* Style the shortest path node with a yellow dot */
@@ -72,8 +70,8 @@
 .shortestPath-node .dot {
   animation-name: shortestPathAnimation;
   animation-duration: 0.8s;
-  animation-timing-function: ease-out; /* Specifies an animation with a slow end */
-  background-color: #fffe6a;
+  animation-timing-function: ease-out;
+  background-color: #f1ea4f;
   border-radius: 50%;
   margin: auto;
   margin-left: -7px;
@@ -87,19 +85,19 @@
 @keyframes visitedAnimation {
   0% {
     transform: scale(0.4);
-    background-color: #ffe5ec;
+    background-color: #71717a;
     border-radius: 100%;
   }
   25% {
-    background-color: #fff7c2;
+    background-color: #fef08a;
   }
   50% {
     transform: scale(1.2);
-    background-color: #ffc3b3;
+    background-color: #fef9c3;
   }
   100% {
     transform: scale(1);
-    background-color: #ff8fab;
+    background-color: #a8a29e;
   }
 }
 
@@ -115,14 +113,5 @@
   100% {
     transform: scale(1);
     opacity: 1;
-  }
-}
-
-@keyframes moveToTarget {
-  from {
-    transform: translate(0, 0);
-  }
-  to {
-    transform: translate(var(--translate-x), var(--translate-y));
   }
 }

@@ -16,8 +16,10 @@ let visited = [];
  * @returns {Array} shortest path
  */
 export function bfs(grid, start, target) {
+  visited = []; // Clear the visited array at the start
+
   // Queue - tracking path tracing back to node
-  let trackQueue = [
+  const trackQueue = [
     {
       [start.row + " " + start.col]: [],
     },
@@ -69,7 +71,7 @@ function getNodeById(grid, curNodeId) {
 }
 
 function getUnvisitedNeighbors(node, grid) {
-  let neighbors = [];
+  const neighbors = [];
   const { row, col } = node;
   if (row > 0) neighbors.push(grid[row - 1][col]);
   if (row < grid.length - 1) neighbors.push(grid[row + 1][col]);
