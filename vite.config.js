@@ -18,6 +18,13 @@ export default defineConfig({
       input: {
         main: path.resolve(__dirname, "./src/main.jsx"),
       },
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            return "vendor";
+          }
+        },
+      },
     },
   },
 });
