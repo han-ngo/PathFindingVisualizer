@@ -1,6 +1,5 @@
 import $ from "jquery";
 import React, { Component } from "react";
-// import { Container } from "@nextui-org/react";
 import Node from "./Node/Node";
 import MyLegend from "./Legend/MyLegend";
 import NextUINavbar from "./Navbar/NextUINavbar";
@@ -28,9 +27,9 @@ export default class PathfindingVisualizer extends Component {
       pressedNode: undefined,
     };
 
-    // TODO: why have to bind???
     this.visualizeAlgorithm = this.visualizeAlgorithm.bind(this);
     this.clearBoard = this.clearBoard.bind(this);
+    this.clearPath = this.clearPath.bind(this);
   }
 
   /********************/
@@ -99,6 +98,9 @@ export default class PathfindingVisualizer extends Component {
     document
       .getElementsByClassName("clear-board")[0]
       .addEventListener("click", this.clearBoard);
+    document
+      .getElementsByClassName("clear-path")[0]
+      .addEventListener("click", this.clearPath);
   }
 
   /**************************/
@@ -148,15 +150,23 @@ export default class PathfindingVisualizer extends Component {
     this.setState({ mouseIsPressed: false, pressedNode: undefined });
   }
 
+  clearPath() {
+    // clear other fields
+    $(".path-not-found").empty();
+
+    // clear path
+    const { grid } = this.state,
+      newGrid = this.clearGrid(grid, false);
+    this.setState({ grid: newGrid });
+  }
+
   clearBoard() {
     // clear other fields
     $(".path-not-found").empty();
 
     // reset all nodes state
     const { grid } = this.state,
-      startNode = grid[START_NODE[0]][START_NODE[1]],
-      targetNode = grid[TARGET_NODE[0]][TARGET_NODE[1]],
-      newGrid = this.resetGrid(grid, startNode, targetNode);
+      newGrid = this.clearGrid(grid);
     this.setState({ grid: newGrid });
   }
 
@@ -423,48 +433,45 @@ export default class PathfindingVisualizer extends Component {
     return newGrid;
   }
 
-  resetGrid(grid, start, target) {
+  clearGrid(grid, reset = true) {
     const newGrid = grid.map((row) =>
       row.map((node) => {
         if (node.isStart) {
           return {
             ...node,
             isVisited: false,
-            isWall: false,
+            isWall: reset ? false : node.isWall,
             status: "start",
           };
         } else if (node.isTarget) {
           return {
             ...node,
             isVisited: false,
-            isWall: false,
+            isWall: reset ? false : node.isWall,
             status: "target",
           };
         } else {
+          const element = document.getElementById(
+            `node-${node.row}-${node.col}`
+          );
+          if (element) {
+            element.classList.remove("visited-node");
+            // remove path & dot class if is shortest path
+            const isPath = element.classList.contains("shortestPath-node");
+            if (isPath) {
+              element.classList.remove("shortestPath-node");
+              element.innerHTML = ""; // remove `.dot`
+            }
+          }
           return {
             ...node,
             isVisited: false,
-            isWall: false,
-            status: "empty",
+            isWall: reset ? false : node.isWall,
+            status: reset ? "empty" : node.isWall ? "wall" : "empty",
           };
         }
       })
     );
-
-    // Preserve start and target nodes in their original positions
-    newGrid[start.row][start.col] = {
-      ...newGrid[start.row][start.col],
-      isVisited: false,
-      isWall: false,
-      status: "start",
-    };
-
-    newGrid[target.row][target.col] = {
-      ...newGrid[target.row][target.col],
-      isVisited: false,
-      isWall: false,
-      status: "target",
-    };
 
     return newGrid;
   }
