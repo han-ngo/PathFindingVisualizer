@@ -130,6 +130,11 @@ export default function NextUINavbar(props) {
               Clear Board
             </Link>
           </NavbarItem>
+          <NavbarItem>
+            <Link className="text-small clear-path" color="foreground" href="#">
+              Clear Path
+            </Link>
+          </NavbarItem>
           {/* <NavbarItem>
             <Link className="text-small" color="foreground" href="#">
               Speed

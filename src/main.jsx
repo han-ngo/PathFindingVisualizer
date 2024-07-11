@@ -15,8 +15,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Link
           isExternal
           className="flex items-center gap-1 text-current"
-          href="https://nextui-docs-v2.vercel.app?utm_source=next-app-template"
-          title="nextui.org homepage"
+          href="https://han-ngo.github.io/mia-ngo/"
+          title="Mia Ngo's Portfolio"
         >
           <span className="text-default-600">Made by</span>
           <p className="font-bold text-rose-500 hover:text-rose-300">Mia Ngo</p>
